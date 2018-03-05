@@ -52,8 +52,8 @@ public class CustomAdapter extends BaseAdapter {
 
         Map.Entry<String, String> item = getItem(position);
 
-        ((TextView) result.findViewById(android.R.id.text2)).setText(item.getKey());
-        ((TextView) result.findViewById(android.R.id.text1)).setText(item.getValue());
+        ((TextView) result.findViewById(R.id.tv_address)).setText(item.getKey());
+        ((TextView) result.findViewById(R.id.tv_distance)).setText(item.getValue());
 
         return result;
     }

@@ -6,6 +6,8 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -38,18 +40,18 @@ import java.util.TreeMap;
 public class MainActivity extends AppCompatActivity {
     private static final String url = "https://movesync-qa.dcsg.com/dsglabs/mobile/api/venue/";
 
-    // Hard coded value for initial location
+    // Hard coded value of (329 Pittsburg Mill) for initial location
     Double latitude1 = 40.572647;
-    Double longitude1 = -79.793396;
+    Double longitude1 = -79.791124;
 
     float distanceInMeters;
 
-    ExpandableListView expandableListView;
-
+    Model model = new Model();
 
     ArrayList<String> listOfAddresses = new ArrayList<>();
-
-
+//    ArrayList<TreeMap<String, String>> allData = new ArrayList<>();
+    ArrayList<String> allData = new ArrayList<>();
+    ArrayList<Model> allData1 = new ArrayList<>();
     TreeMap<String, String> sorted_map = new TreeMap<>();
 
     // Global vairiable for  Starting Address Lat n Long
@@ -57,6 +59,12 @@ public class MainActivity extends AppCompatActivity {
 
     // Global vairiable for Destination Address Lat n Long
     Location loc2 = new Location("");
+
+    RecyclerView recyclerView;
+    RecyclerView.Adapter recyclerViewAdapter;
+
+
+    RecyclerView.LayoutManager layoutManager;
 
 
     @Override
@@ -68,8 +76,10 @@ public class MainActivity extends AppCompatActivity {
         loc1.setLongitude(longitude1);
         fetchPosts();
 
-//        expandableListView = findViewById(R.id.expandableLV);
-
+        recyclerView = findViewById(R.id.listView);
+        layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setHasFixedSize(true);
 
 
     }
@@ -84,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onResponse(String response) {
 
+            Model model = new Model();
             if (response != null) {
                 try {
                     JSONObject jsonObj = new JSONObject(response);
@@ -113,9 +124,16 @@ public class MainActivity extends AppCompatActivity {
                         distanceInMeters = (loc1.distanceTo(loc2));
                         // Adding distance to Tree Map
 
-                        sorted_map.put((String.valueOf(distanceInMeters))+ " (meters)"," "+address);
+                        sorted_map.put((String.valueOf(distanceInMeters))+ " (meters) \n"+id+"\n"+address," "+address);
+//                        sorted_map.put(id,name);
+
+                        model.setAddress(address);
+                        model.setId(id);
+
+                        allData1.add(model);
 
                     }
+
                 }
 
 
@@ -145,6 +163,8 @@ public class MainActivity extends AppCompatActivity {
 
             }
             addDataToListView();
+            Log.i("lll", String.valueOf(allData1));
+
         }
     };
 
@@ -157,47 +177,56 @@ public class MainActivity extends AppCompatActivity {
 
     private void addDataToListView() {
 
+        // Creating Custom Adpter to be added to ListVIew
+
+        Iterator iterator = sorted_map.keySet().iterator();
+        while (iterator.hasNext()) {
+            Object key = iterator.next();
+
+            allData.add(String.valueOf(key));
+
+
+
+        }
+
+        recyclerViewAdapter = new RecyclerViewAdapter(this,allData);
+        recyclerView.setAdapter(recyclerViewAdapter);
+
+//        ArrayAdapter adapter1= new ArrayAdapter(this,android.R.layout.simple_list_item_1,allData);
+////        CustomAdapter adapter = new CustomAdapter(sorted_map);
+//        // Adding Custom Adapter to ListView
+//        ListView mListView = findViewById(R.id.listView);
+//        mListView.setAdapter(adapter1);
+
+//        adapter1.notifyDataSetChanged();
+
+//        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 //
-//        ExpandableListAdapter expandableListAdapter = new ExpandableListAdapter(this,listOfAddresses,sorted_map);
+//                Iterator iterator = sorted_map.keySet().iterator();
+//                while (iterator.hasNext()) {
+//                    Object key = iterator.next();
 //
-//        expandableListView.setAdapter(expandableListAdapter);
+//                    //adding address value from TreeMap to ArrayList
+//                    listOfAddresses.add(sorted_map.get(key));
 //
-//        Log.i("Expnad","done");
-//        Log.i("Expnad", String.valueOf(sorted_map));
-
-
-        CustomAdapter adapter = new CustomAdapter(sorted_map);
-        ListView mListView = findViewById(R.id.listView);
-        mListView.setAdapter(adapter);
-
-        adapter.notifyDataSetChanged();
-
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-
-                Iterator iterator = sorted_map.keySet().iterator();
-                while (iterator.hasNext()) {
-                    Object key = iterator.next();
-
-                    //adding address value from TreeMap to ArrayList
-                    listOfAddresses.add(sorted_map.get(key));
-
-                }
-
-                // gets The address info from arraylist based on click position
-                String destination = String.valueOf(listOfAddresses.get(i));
-
-                // Opens google map upon click
-                Uri gmmIntentUri = Uri.parse("google.navigation:q="+destination+"&mode=d");
-                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-                mapIntent.setPackage("com.google.android.apps.maps");
-                if (mapIntent.resolveActivity(getPackageManager()) != null) {
-                    startActivity(mapIntent);
-                }
-            }
-
-        });
+//
+//                }
+//
+//                // gets The address info from arraylist based on click position
+//                String destination = String.valueOf(listOfAddresses.get(i));
+//
+//                // Opens google map upon click
+//                Uri gmmIntentUri = Uri.parse("google.navigation:q="+destination+"&mode=d");
+//                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+//                mapIntent.setPackage("com.google.android.apps.maps");
+//                if (mapIntent.resolveActivity(getPackageManager()) != null) {
+//                    startActivity(mapIntent);
+//                }
+//            }
+//
+//        });
     }
 
 }
